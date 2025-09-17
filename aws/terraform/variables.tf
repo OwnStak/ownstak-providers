@@ -7,6 +7,7 @@ variable "aws_region" {
 variable "resource_prefix" {
   description = "Resource prefix for naming resources (14 characters max to avoid AWS resource name limits)"
   type        = string
+  default     = "ownstak"
   
   validation {
     condition     = length(var.resource_prefix) <= 14
@@ -70,6 +71,7 @@ variable "domain_zone_id" {
 variable "ecr_image" {
   description = "ECR image URI for the ECS task"
   type        = string
+  default     = "public.ecr.aws/ownstak/ownstak-proxy:latest"
 }
 
 variable "console_url" {

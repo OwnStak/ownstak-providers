@@ -1,51 +1,57 @@
-# AWS Configuration
-aws_region = "us-east-1"
+# AWS Configuration ("us-east-1" by default)
+# aws_region = "us-east-2"
 
-# Unique identifier for this Ownstak backend. 
-# Can be used to deploy multiple backends in the same AWS Account / Region -- do not change
-# otherwise.
+# Unique identifier for this Ownstak backend ("ownstak" by default)
+# Give it a unique name if multiple backends are deployed in the same AWS Account / Region
 # (14 characters max to avoid AWS resource name limits)
-resource_prefix = "ownstak-tf"
+# resource_prefix = "ownstak-abcd"
 
-# VPC Configuration (use default VPC)
-use_default_vpc = true
+# Networking Configuration (uses default VPC/Subnets by default)
+#
 
-# VPC Configuration (custom VPC - uncomment if not using default VPC)
-# use_default_vpc = false
 # vpc_id = "vpc-12345678"
 # public_subnet_ids = ["subnet-12345678", "subnet-87654321"]
 # private_subnet_ids = ["subnet-11111111", "subnet-22222222"]
 
+# VPC S3 Endpoint (optional - for private bucket access)
+# vpc_s3_endpoint_id = "vpce-12345678"
+
+
 # ALB Configuration
-# Set to true if the ALB is not exposed to the internet directly.
-use_internal_alb = false
+#
+# Enable if the ALB should not exposed to the internet directly.
+# use_internal_alb = true
 
 # DNS Configuration
+#
 # The Ownstak backend requires a wildcard domain to serve your sites.
 ownstak_wilcard_domain = "*.example.com"
+
 # If you have a Route53 hosted zone for this domain, the certificate can be generated automatically
 # and the CNAME record to the ALB can be created automatically.
 # Otherwise, set this to false and you will have to provide the certificate ARN and create the CNAME record to the ALB manually.
 # automatic_dns = false
+
 # Optional: Specify the Route53 hosted zone ID (will auto-detect if not provided)
 # domain_zone_id = "Z1234567890ABCDEF"
 
 # Cert Configuration
-# Option 1: Provide your own certificate ARN
+#
+# Provide your own certificate ARN. Will be created automatically if not provided.
+# This is mandatory if automatic_dns = false.
 # certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
 
-# Option 2: Let Terraform create the certificate automatically (recommended, but requires automatic_dns = true)
-# certificate_arn = null
 
+# Lambda Proxy Configuration
+#
+# Pin a specific version or use your own docker image (uses latest by default)
+# ecr_image = "public.ecr.aws/ownstak/ownstak-proxy:x.y.z
 
-# ECS Configuration
-ecr_image = "public.ecr.aws/ownstak/ownstak-proxy:latest"
-# or pin a specific version:
-# ecr_image = "public.ecr.aws/ownstak/ownstak-proxy:0.1.13
-instance_cpu = 512
-instance_memory = 1024
+# Auto-scaling limits
 min_instances = 2
 max_instances = 6
 
-# VPC S3 Endpoint (optional - for private bucket access)
-# vpc_s3_endpoint_id = "vpce-12345678"
+# CPU/Memory - teak only if needed
+# instance_cpu = 512
+# instance_memory = 1024
+

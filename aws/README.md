@@ -31,7 +31,7 @@ This Terraform template deploys the OwnStak infrastructure to AWS, allowing you 
 
 1. **AWS CLI configured** with appropriate credentials
 2. **Terraform >= 1.0** installed
-3. **Wildcard domain** and correspnding **ACM Certificate** for HTTPS (must be in the same region as the ALB)
+3. **Wildcard domain** that will host your deployed sites.
 
 
 ## Usage
@@ -43,9 +43,8 @@ Copy the example variables file and customize it:
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Edit `terraform.tfvars` with your specific values:
-- `certificate_arn`: ARN of your ACM certificate
-- `ownstak_wilcard_domain`: Domain name for your sites (e.g., *.example.com)
+Edit `terraform.tfvars` with your specific values, particularly:
+- `ownstak_wilcard_domain`: Domain name for your sites (e.g., *.example.com). Make sure this domain has a hosted zone in your AWS account and region. Otherwise you won't be able to use the `automatic_dns` option.
 
 
 ### Initialize Terraform
@@ -60,13 +59,7 @@ terraform plan
 
 ### Apply the Configuration
 ```bash
-terraform apply
-```
-
-### Get Outputs
-After successful deployment, get the ALB DNS name:
-```bash
-terraform output ownstak_alb_dns_name
+./apply.js
 ```
 
 ## Configuration Options
@@ -78,8 +71,7 @@ terraform output ownstak_alb_dns_name
 - Example: `ownstak-tf` (10 chars) leaves room for additional suffixes
 
 ### VPC Configuration
-- **Default VPC**: Set `use_default_vpc = true` (recommended for simplicity)
-- **Custom VPC**: Set `use_default_vpc = false` and provide `vpc_id`, `public_subnet_ids`, and `private_subnet_ids`
+- **Custom VPC**: Provide `vpc_id`, `public_subnet_ids`, and `private_subnet_ids`. Default VPC and Subnets will be used otherwise.
 
 ### ALB Configuration
 - **Internet-facing**: Set `use_internal_alb = false` (default)
@@ -103,6 +95,7 @@ terraform output ownstak_alb_dns_name
 The template provides the following outputs that are required for deploying your OwnStak sites:
 
 - `ownstak_alb_dns_name`: DNS name of the Application Load Balancer. When `automatic_dns` is disabled, the CNAME record between your `ownstak_wildcard_domain` and `ownstak_alb_dns_name` will have to be created manually.
+- `ci_user_name`: IAM User that should be used by your CI to deploy sites to your infra.
 - `ownstak_aws_region`: AWS region where resources are deployed
 - `ownstak_wildcard_domain`: DNS wildcard domain for OwnStak sites
 - `ownstak_resource_prefix`: Resource prefix used for naming
@@ -122,30 +115,15 @@ After successful deployment, you'll need to set these outputs as environment var
 To get the values, use `terraform output -raw <output_name>` for each output, then set the corresponding environment variable. Once all environment variables are set, run:
 
 ```bash
-npx ownstak deploy --backend aws
+npx ownstak deploy --provider aws
 ```
 
 ## Cleanup
 
-### Lambda Function Cleanup
-
-**Important**: Lambda functions created by OwnStak deployments are not managed by this Terraform template and must be deleted separately using the provided cleanup script.
-
-```bash
-# Delete Lambda functions for a specific environment
-./destroy-lambda-functions.sh <resource_prefix>
-
-# In general 
-./destroy-lambda-functions.sh ownstak-tf
-```
-
-**Critical Warning**: If you recreate the Terraform template without first deleting the Lambda functions, the existing functions will remain attached to the old (now non-existing) IAM role, causing them to fail. Always run the Lambda cleanup script before running `terraform destroy` and `terraform apply` again.
-
-### Terraform Cleanup
-
 To destroy all Terraform-managed resources:
 ```bash
-terraform destroy
+./destroy.sh
 ```
 
-**Warning**: This will delete all resources created by this template, including S3 buckets and their contents. Remember to delete Lambda functions first using the cleanup script above.
+**Important**: Lambda functions created by OwnStak deployments are not managed by this Terraform template and will be deleted separately by `destroy.sh`. It is important not to leave orphan functions as they would be attached to a now-deleted IAM Role.
+

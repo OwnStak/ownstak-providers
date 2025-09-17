@@ -27,3 +27,8 @@ output "ownstak_certificate_arn" {
   description = "ARN of the ACM certificate for the wildcard domain"
   value       = var.certificate_arn != null ? var.certificate_arn : aws_acm_certificate_validation.wildcard[0].certificate_arn
 }
+
+output "ci_user_name" {
+  description = "Name of the CI IAM user"
+  value       = aws_iam_user.ci.name
+}

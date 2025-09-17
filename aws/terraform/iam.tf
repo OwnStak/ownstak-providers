@@ -121,3 +121,101 @@ resource "aws_iam_role_policy" "ecs_lambda_proxy" {
   })
 }
 
+# CI IAM User
+resource "aws_iam_user" "ci" {
+  name = "${var.resource_prefix}-ci-user"
+  path = "/"
+
+  tags = local.common_tags
+}
+
+# CI IAM Policy for Lambda operations
+resource "aws_iam_policy" "ci_lambda" {
+  name        = "${var.resource_prefix}-ci-lambda-policy"
+  description = "Policy for CI user to manage Lambda functions and aliases"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:CreateFunction",
+          "lambda:DeleteFunction",
+          "lambda:GetFunction",
+          "lambda:GetFunctionConfiguration",
+          "lambda:ListFunctions",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:CreateAlias",
+          "lambda:DeleteAlias",
+          "lambda:GetAlias",
+          "lambda:ListAliases",
+          "lambda:UpdateAlias",
+          "lambda:InvokeFunction",
+          "lambda:ListVersionsByFunction",
+          "lambda:PublishVersion",
+        ]
+        Resource = [
+          "arn:aws:lambda:*:*:function:${var.resource_prefix}-*",
+          "arn:aws:lambda:*:*:function:${var.resource_prefix}-*:*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = aws_iam_role.lambda_execution.arn
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+# CI IAM Policy for S3 operations
+resource "aws_iam_policy" "ci_s3" {
+  name        = "${var.resource_prefix}-ci-s3-policy"
+  description = "Policy for CI user to manage S3 buckets"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = concat(
+          [for bucket in aws_s3_bucket.buckets : bucket.arn],
+          [for bucket in aws_s3_bucket.buckets : "${bucket.arn}/*"]
+        )
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+# Attach Lambda policy to CI user
+resource "aws_iam_user_policy_attachment" "ci_lambda" {
+  user       = aws_iam_user.ci.name
+  policy_arn = aws_iam_policy.ci_lambda.arn
+}
+
+# Attach S3 policy to CI user
+resource "aws_iam_user_policy_attachment" "ci_s3" {
+  user       = aws_iam_user.ci.name
+  policy_arn = aws_iam_policy.ci_s3.arn
+}
+
+# Create access keys for CI user
+resource "aws_iam_access_key" "ci" {
+  user = aws_iam_user.ci.name
+}
+

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Check if resource prefix parameter is provided
-if [ $# -eq 0 ]; then
-    echo "Error: Resource prefix parameter is required"
-    echo "Usage: $0 <resource_prefix>"
-    echo "Example: $0 dev"
+set -e
+
+RESOURCE_PREFIX=$(cd terraform && terraform output -raw ownstak_resource_prefix)
+
+# Ensure the prefix is not empty
+if [ -z "$RESOURCE_PREFIX" ]; then
+    echo "Error: Resource prefix terraform output is empty"
     exit 1
 fi
-
-RESOURCE_PREFIX="$1"
 
 for arn in $(aws resourcegroupstaggingapi get-resources \
   --resource-type-filters lambda:function \
@@ -19,3 +19,5 @@ for arn in $(aws resourcegroupstaggingapi get-resources \
     echo "Deleting $func_name"
     aws lambda delete-function --function-name "$func_name"
 done
+
+(cd terraform && terraform destroy)

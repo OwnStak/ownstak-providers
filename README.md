@@ -1,4 +1,4 @@
-# OwnStak Backends
+# OwnStak Providers
 
 This repository provides Terraform templates for deploying OwnStak infrastructure to multiple cloud providers. OwnStak allows you to host your own sites with a comprehensive infrastructure-as-code solution.
 

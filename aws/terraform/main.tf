@@ -31,9 +31,10 @@ data "aws_subnets" "default" {
 }
 
 locals {
-  vpc_id           = var.use_default_vpc ? data.aws_vpc.default[0].id : var.vpc_id
-  public_subnets   = var.use_default_vpc ? data.aws_subnets.default[0].ids : var.public_subnet_ids
-  private_subnets  = var.use_default_vpc ? data.aws_subnets.default[0].ids : var.private_subnet_ids
+  use_default_vpc = var.vpc_id == null
+  vpc_id           = local.use_default_vpc ? data.aws_vpc.default[0].id : var.vpc_id
+  public_subnets   = local.use_default_vpc ? data.aws_subnets.default[0].ids : var.public_subnet_ids
+  private_subnets  = local.use_default_vpc ? data.aws_subnets.default[0].ids : var.private_subnet_ids
   
   common_tags = merge(var.tags, {
     Name = var.resource_prefix

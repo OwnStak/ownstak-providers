@@ -40,6 +40,7 @@ This Terraform template deploys the OwnStak infrastructure to AWS, allowing you 
 ### Configure Variables
 Copy the example variables file and customize it:
 ```bash
+cd terraform
 cp terraform.tfvars.example terraform.tfvars
 ```
 
@@ -49,18 +50,23 @@ Edit `terraform.tfvars` with your specific values, particularly:
 
 ### Initialize Terraform
 ```bash
-terraform init
+terraform -chdir=terraform init
 ```
 
 ### Plan the Deployment
 ```bash
-terraform plan
+terraform -chdir=terraform plan
 ```
 
 ### Apply the Configuration
 ```bash
-./apply.js
+./apply.sh
 ```
+
+#### Apply Options
+- **Interactive mode**: `./apply.sh` - Standard terraform apply with confirmation prompts
+- **Auto-approve mode**: `./apply.sh --auto-approve` - Skip confirmation prompts and apply automatically
+- **With variables**: `./apply.sh -var="key=value"` - Pass terraform variables
 
 ## Configuration Options
 
@@ -126,4 +132,9 @@ To destroy all Terraform-managed resources:
 ```
 
 **Important**: Lambda functions created by OwnStak deployments are not managed by this Terraform template and will be deleted separately by `destroy.sh`. It is important not to leave orphan functions as they would be attached to a now-deleted IAM Role.
+
+#### Destroy Options
+- **Auto-approve mode**: `./destroy.sh --auto-approve` - Skips confirmation prompts and deletes lambda functions automatically
+
+
 

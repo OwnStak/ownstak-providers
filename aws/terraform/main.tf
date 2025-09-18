@@ -37,7 +37,6 @@ locals {
   private_subnets  = local.use_default_vpc ? data.aws_subnets.default[0].ids : var.private_subnet_ids
   
   common_tags = merge(var.tags, {
-    Name = var.resource_prefix
     Project = "Ownstak"
     OwnstakPrefix = var.resource_prefix
   })

@@ -121,8 +121,6 @@ resource "aws_iam_role_policy" "ecs_lambda_proxy" {
   })
 }
 
-
-
 # CI IAM User
 resource "aws_iam_user" "ci" {
   name = "${var.resource_prefix}-ci-user"
@@ -214,5 +212,10 @@ resource "aws_iam_user_policy_attachment" "ci_lambda" {
 resource "aws_iam_user_policy_attachment" "ci_s3" {
   user       = aws_iam_user.ci.name
   policy_arn = aws_iam_policy.ci_s3.arn
+}
+
+# Create access keys for CI user
+resource "aws_iam_access_key" "ci" {
+  user = aws_iam_user.ci.name
 }
 

@@ -47,15 +47,16 @@ cp terraform.tfvars.example terraform.tfvars
 Edit `terraform.tfvars` with your specific values, particularly:
 - `ownstak_wilcard_domain`: Domain name for your sites (e.g., *.example.com). Make sure this domain has a hosted zone in your AWS account and region. Otherwise you won't be able to use the `automatic_dns` option.
 
+See [Configuration Options](#configuration-options) for more details.
 
 ### Initialize Terraform
 ```bash
-terraform -chdir=terraform init
+terraform init
 ```
 
 ### Plan the Deployment
 ```bash
-terraform -chdir=terraform plan
+terraform plan
 ```
 
 ### Apply the Configuration
@@ -70,30 +71,31 @@ terraform -chdir=terraform plan
 
 ## Configuration Options
 
-### Resource Naming
-- **Resource Prefix**: Must be 14 characters or less to avoid AWS resource name limits
-- This constraint exists because AWS has limits on resource names (e.g., Lambda functions: 64 chars, S3 buckets: 63 chars)
-- The prefix is used for all resources: ALB, ECS cluster, S3 buckets, IAM roles, etc.
-- Example: `ownstak-tf` (10 chars) leaves room for additional suffixes
+### Basic Configuration
+- `aws_region` - AWS region for deployment (default: "us-east-1")
+- `resource_prefix` - Unique identifier that prefixes all AWS resource names. Required if deploying multiple instances to the same account/region. Must be 14 characters or less to avoid AWS resource name limits (default: "ownstak")
 
 ### VPC Configuration
-- **Custom VPC**: Provide `vpc_id`, `public_subnet_ids`, and `private_subnet_ids`. Default VPC and Subnets will be used otherwise.
+- `vpc_id` - Custom VPC ID (optional, uses default VPC if not provided)
+- `public_subnet_ids` - List of public subnet IDs for the ALB. Required if using custom VPC. The ALB must be in public subnets to receive internet traffic or on a private subnet where public traffic is routed to, in which case `use_internal_alb = false` must be set. This is common if public traffic is routed through a firewall for example.
+- `private_subnet_ids` - List of private subnet IDs for ECS tasks. Required if using custom VPC
+- `vpc_s3_endpoint_id` - VPC S3 endpoint ID for private bucket access (optional)
 
 ### ALB Configuration
-- **Internet-facing**: Set `use_internal_alb = false` (default)
-- **Internal**: Set `use_internal_alb = true` for private ALBs
+- `use_internal_alb` - Set to `true` for internal ALB (not directly internet-facing), `false` for internet-facing ALB (default: false)
 
 ### ECS Configuration
-- **CPU/Memory**: Adjust `instance_cpu` and `instance_memory` based on your needs
-- **Scaling**: Configure `min_instances` and `max_instances` for auto-scaling
-- **Architecture**: Currently set to ARM64 for cost efficiency
+- `instance_cpu` - ECS task CPU units (default: 512)
+- `instance_memory` - ECS task memory in MB (default: 1024)
+- `min_instances` - Minimum number of ECS instances for auto-scaling (default: 2)
+- `max_instances` - Maximum number of ECS instances for auto-scaling (default: 6)
+- `ecr_image` - ECR image URI for the ECS task (default: "public.ecr.aws/ownstak/ownstak-proxy:latest")
 
-
-## Important Notes
-
-### Certificate Requirements
-- The ACM certificate must be in the same region as the ALB
-- Certificate must be validated and in "ISSUED" status
+### DNS and Certificate Configuration
+- `ownstak_wilcard_domain` - Wildcard domain for your OwnStak sites (e.g., "*.example.com") - **Required**
+- `automatic_dns` - Set to `true` to automatically create DNS records and certificate via Route53 (default: true)
+- `domain_zone_id` - Route53 hosted zone ID for the domain (optional, auto-detected if not provided)
+- `certificate_arn` - Custom ACM certificate ARN (optional, created automatically if not provided and `automatic_dns = true`)
 
 
 ## Outputs

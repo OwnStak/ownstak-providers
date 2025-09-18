@@ -15,8 +15,9 @@ set -e
   echo ""
   echo "--------------------------------"
   echo ""
-  echo "Use this command to deploy your sites to your OwnStak backend:"
+  echo "Use this command to deploy your sites to your OwnStak backend."
+  echo "Replace 'my-project' with your project name, it will be used as a subdomain:"
   echo ""
-  echo "OWNSTAK_AWS_REGION=$OWNSTAK_AWS_REGION OWNSTAK_WILDCARD_DOMAIN=$OWNSTAK_WILDCARD_DOMAIN OWNSTAK_RESOURCE_PREFIX=$OWNSTAK_RESOURCE_PREFIX OWNSTAK_LAMBDA_ROLE=$OWNSTAK_LAMBDA_ROLE npx ownstak deploy --provider-type aws"
+  echo "OWNSTAK_AWS_REGION=$OWNSTAK_AWS_REGION OWNSTAK_WILDCARD_DOMAIN=$OWNSTAK_WILDCARD_DOMAIN OWNSTAK_RESOURCE_PREFIX=$OWNSTAK_RESOURCE_PREFIX OWNSTAK_LAMBDA_ROLE=$OWNSTAK_LAMBDA_ROLE npx ownstak deploy --provider-type aws --environment my-project"
 
 ) 
